@@ -11,3 +11,6 @@ members = [
   "sha2raw",
   "filecoin-hashers",
 ]
+
+[patch.crates-io]
+rust-gpu-tools = { git = "https://github.com/filecoin-project/rust-gpu-tools", branch = "back-to-ocl2" }
