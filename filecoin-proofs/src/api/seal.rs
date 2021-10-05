@@ -6,7 +6,7 @@ use anyhow::{ensure, Context, Result};
 use bellperson::groth16;
 use bincode::{deserialize, serialize};
 use blstrs::{Bls12, Scalar as Fr};
-use filecoin_hashers::{Domain, Hasher};
+use filecoin_hashers::{poseidon::PoseidonHasher, Domain, Hasher};
 use log::{info, trace};
 use memmap::MmapOptions;
 use merkletree::store::{DiskStore, Store, StoreConfig};
@@ -173,7 +173,7 @@ where
         "pieces and comm_d do not match"
     );
 
-    let replica_id = generate_replica_id::<Tree::Hasher, _>(
+    let replica_id = generate_replica_id::<PoseidonHasher, _>(
         &prover_id,
         sector_id.into(),
         &ticket,

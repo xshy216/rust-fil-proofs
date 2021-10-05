@@ -1,6 +1,9 @@
 use std::path::PathBuf;
 
-use filecoin_hashers::Hasher;
+use filecoin_hashers::{
+    poseidon::{PoseidonDomain, PoseidonHasher},
+    Hasher,
+};
 use merkletree::store::StoreConfig;
 use storage_proofs_core::{
     error::Result,
@@ -16,18 +19,15 @@ use crate::{
     PoRep,
 };
 
-impl<'a, 'c, Tree: 'static + MerkleTreeTrait, G: 'static + Hasher> PoRep<'a, Tree::Hasher, G>
+impl<'a, 'c, Tree: 'static + MerkleTreeTrait, G: 'static + Hasher> PoRep<'a, PoseidonHasher, G>
     for StackedDrg<'a, Tree, G>
 {
-    type Tau = Tau<<Tree::Hasher as Hasher>::Domain, <G as Hasher>::Domain>;
-    type ProverAux = (
-        PersistentAux<<Tree::Hasher as Hasher>::Domain>,
-        TemporaryAux<Tree, G>,
-    );
+    type Tau = Tau<PoseidonDomain, <G as Hasher>::Domain>;
+    type ProverAux = (PersistentAux<PoseidonDomain>, TemporaryAux<Tree, G>);
 
     fn replicate(
         pp: &'a PublicParams<Tree>,
-        replica_id: &<Tree::Hasher as Hasher>::Domain,
+        replica_id: &PoseidonDomain,
         data: Data<'a>,
         data_tree: Option<BinaryMerkleTree<G>>,
         config: StoreConfig,
@@ -48,7 +48,7 @@ impl<'a, 'c, Tree: 'static + MerkleTreeTrait, G: 'static + Hasher> PoRep<'a, Tre
 
     fn extract_all<'b>(
         pp: &'b PublicParams<Tree>,
-        replica_id: &'b <Tree::Hasher as Hasher>::Domain,
+        replica_id: &'b PoseidonDomain,
         data: &'b mut [u8],
         config: Option<StoreConfig>,
     ) -> Result<()> {
@@ -65,7 +65,7 @@ impl<'a, 'c, Tree: 'static + MerkleTreeTrait, G: 'static + Hasher> PoRep<'a, Tre
 
     fn extract(
         _pp: &PublicParams<Tree>,
-        _replica_id: &<Tree::Hasher as Hasher>::Domain,
+        _replica_id: &PoseidonDomain,
         _data: &mut [u8],
         _node: usize,
         _config: Option<StoreConfig>,

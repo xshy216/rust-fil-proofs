@@ -3,7 +3,10 @@ use std::fs::remove_file;
 use blstrs::Scalar as Fr;
 use ff::{Field, PrimeField};
 use filecoin_hashers::{
-    blake2s::Blake2sHasher, poseidon::PoseidonHasher, sha256::Sha256Hasher, Domain, Hasher,
+    blake2s::Blake2sHasher,
+    poseidon::{PoseidonDomain, PoseidonHasher},
+    sha256::Sha256Hasher,
+    Domain, Hasher,
 };
 use fr32::fr_into_bytes;
 use generic_array::typenum::{U0, U2, U4, U8};
@@ -34,36 +37,6 @@ use tempfile::tempdir;
 const DEFAULT_STACKED_LAYERS: usize = 11;
 
 #[test]
-fn test_stacked_porep_extract_all_sha256_base_8() {
-    test_extract_all::<DiskTree<Sha256Hasher, U8, U0, U0>>();
-}
-
-#[test]
-fn test_stacked_porep_extract_all_sha256_sub_8_8() {
-    test_extract_all::<DiskTree<Sha256Hasher, U8, U8, U0>>();
-}
-
-#[test]
-fn test_stacked_porep_extract_all_sha256_top_8_8_2() {
-    test_extract_all::<DiskTree<Sha256Hasher, U8, U8, U2>>();
-}
-
-#[test]
-fn test_stacked_porep_extract_all_blake2s_base_8() {
-    test_extract_all::<DiskTree<Blake2sHasher, U8, U0, U0>>();
-}
-
-#[test]
-fn test_stacked_porep_extract_all_blake2s_sub_8_8() {
-    test_extract_all::<DiskTree<Blake2sHasher, U8, U8, U0>>();
-}
-
-#[test]
-fn test_stacked_porep_extract_all_blake2s_top_8_8_2() {
-    test_extract_all::<DiskTree<Blake2sHasher, U8, U8, U2>>();
-}
-
-#[test]
 fn test_stacked_porep_extract_all_poseidon_base_8() {
     test_extract_all::<DiskTree<PoseidonHasher, U8, U0, U0>>();
 }
@@ -78,7 +51,7 @@ fn test_stacked_porep_extract_all_poseidon_top_8_8_2() {
     test_extract_all::<DiskTree<PoseidonHasher, U8, U8, U2>>();
 }
 
-fn test_extract_all<Tree: 'static + MerkleTreeTrait>() {
+fn test_extract_all<Tree: 'static + MerkleTreeTrait<Hasher = PoseidonHasher>>() {
     // pretty_env_logger::try_init();
 
     let mut rng = XorShiftRng::from_seed(TEST_SEED);
@@ -316,22 +289,6 @@ table_tests! {
 fn test_prove_verify_fixed(n: usize) {
     let challenges = LayerChallenges::new(DEFAULT_STACKED_LAYERS, 5);
 
-    test_prove_verify::<DiskTree<Sha256Hasher, U8, U0, U0>>(n, challenges.clone());
-    test_prove_verify::<DiskTree<Sha256Hasher, U8, U2, U0>>(n, challenges.clone());
-    test_prove_verify::<DiskTree<Sha256Hasher, U8, U8, U2>>(n, challenges.clone());
-
-    test_prove_verify::<DiskTree<Sha256Hasher, U4, U0, U0>>(n, challenges.clone());
-    test_prove_verify::<DiskTree<Sha256Hasher, U4, U2, U0>>(n, challenges.clone());
-    test_prove_verify::<DiskTree<Sha256Hasher, U4, U8, U2>>(n, challenges.clone());
-
-    test_prove_verify::<DiskTree<Blake2sHasher, U4, U0, U0>>(n, challenges.clone());
-    test_prove_verify::<DiskTree<Blake2sHasher, U4, U2, U0>>(n, challenges.clone());
-    test_prove_verify::<DiskTree<Blake2sHasher, U4, U8, U2>>(n, challenges.clone());
-
-    test_prove_verify::<DiskTree<Blake2sHasher, U8, U0, U0>>(n, challenges.clone());
-    test_prove_verify::<DiskTree<Blake2sHasher, U8, U2, U0>>(n, challenges.clone());
-    test_prove_verify::<DiskTree<Blake2sHasher, U8, U8, U2>>(n, challenges.clone());
-
     test_prove_verify::<DiskTree<PoseidonHasher, U4, U0, U0>>(n, challenges.clone());
     test_prove_verify::<DiskTree<PoseidonHasher, U4, U2, U0>>(n, challenges.clone());
     test_prove_verify::<DiskTree<PoseidonHasher, U4, U8, U2>>(n, challenges.clone());
@@ -341,7 +298,10 @@ fn test_prove_verify_fixed(n: usize) {
     test_prove_verify::<DiskTree<PoseidonHasher, U8, U8, U2>>(n, challenges);
 }
 
-fn test_prove_verify<Tree: 'static + MerkleTreeTrait>(n: usize, challenges: LayerChallenges) {
+fn test_prove_verify<Tree: 'static + MerkleTreeTrait<Hasher = PoseidonHasher>>(
+    n: usize,
+    challenges: LayerChallenges,
+) {
     // This will be called multiple times, only the first one succeeds, and that is ok.
     // femme::pretty::Logger::new()
     //     .start(log::LevelFilter::Trace)
@@ -399,13 +359,12 @@ fn test_prove_verify<Tree: 'static + MerkleTreeTrait>(n: usize, challenges: Laye
     assert_ne!(data, copied, "replication did not change data");
 
     let seed = rng.gen();
-    let pub_inputs =
-        PublicInputs::<<Tree::Hasher as Hasher>::Domain, <Blake2sHasher as Hasher>::Domain> {
-            replica_id,
-            seed,
-            tau: Some(tau),
-            k: None,
-        };
+    let pub_inputs = PublicInputs::<PoseidonDomain, <Blake2sHasher as Hasher>::Domain> {
+        replica_id,
+        seed,
+        tau: Some(tau),
+        k: None,
+    };
 
     // Store a copy of the t_aux for later resource deletion.
     let t_aux_orig = t_aux.clone();

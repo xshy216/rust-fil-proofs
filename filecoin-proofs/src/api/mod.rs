@@ -4,7 +4,10 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{ensure, Context, Result};
 use bincode::deserialize;
-use filecoin_hashers::Hasher;
+use filecoin_hashers::{
+    poseidon::{PoseidonDomain, PoseidonHasher},
+    Hasher,
+};
 use fr32::{write_unpadded, Fr32Reader};
 use log::{info, trace};
 use memmap::MmapOptions;
@@ -148,7 +151,7 @@ where
     let comm_d =
         as_safe_commitment::<<DefaultPieceHasher as Hasher>::Domain, _>(&comm_d, "comm_d")?;
 
-    let replica_id = generate_replica_id::<Tree::Hasher, _>(
+    let replica_id = generate_replica_id::<PoseidonHasher, _>(
         &prover_id,
         sector_id.into(),
         &ticket,
@@ -215,7 +218,7 @@ where
     let comm_d =
         as_safe_commitment::<<DefaultPieceHasher as Hasher>::Domain, _>(&comm_d, "comm_d")?;
 
-    let replica_id = generate_replica_id::<Tree::Hasher, _>(
+    let replica_id = generate_replica_id::<PoseidonHasher, _>(
         &prover_id,
         sector_id.into(),
         &ticket,
@@ -266,7 +269,7 @@ fn unseal_range_inner<P, W, Tree>(
     cache_path: P,
     data: &mut [u8],
     mut unsealed_output: W,
-    replica_id: <Tree::Hasher as Hasher>::Domain,
+    replica_id: PoseidonDomain,
     offset: UnpaddedByteIndex,
     num_bytes: UnpaddedBytesAmount,
 ) -> Result<UnpaddedBytesAmount>

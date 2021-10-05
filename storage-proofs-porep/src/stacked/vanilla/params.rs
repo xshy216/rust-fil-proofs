@@ -3,7 +3,7 @@ use std::marker::PhantomData;
 use std::path::{Path, PathBuf};
 
 use anyhow::Context;
-use filecoin_hashers::{Domain, Hasher};
+use filecoin_hashers::{poseidon::PoseidonDomain, Domain, Hasher};
 use fr32::bytes_into_fr_repr_safe;
 use generic_array::typenum::{Unsigned, U2};
 use log::trace;
@@ -323,8 +323,8 @@ impl<Proof: MerkleProofTrait> ReplicaColumnProof<Proof> {
 }
 
 pub type TransformedLayers<Tree, G> = (
-    Tau<<<Tree as MerkleTreeTrait>::Hasher as Hasher>::Domain, <G as Hasher>::Domain>,
-    PersistentAux<<<Tree as MerkleTreeTrait>::Hasher as Hasher>::Domain>,
+    Tau<PoseidonDomain, <G as Hasher>::Domain>,
+    PersistentAux<PoseidonDomain>,
     TemporaryAux<Tree, G>,
 );
 

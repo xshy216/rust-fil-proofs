@@ -7,7 +7,10 @@ use std::sync::Mutex;
 use anyhow::Context;
 use bincode::deserialize;
 use fdlimit::raise_fd_limit;
-use filecoin_hashers::{Domain, HashFunction, Hasher, PoseidonArity};
+use filecoin_hashers::{
+    poseidon::{PoseidonDomain, PoseidonHasher},
+    Domain, HashFunction, Hasher, PoseidonArity,
+};
 use generic_array::typenum::{Unsigned, U0, U11, U2, U8};
 use lazy_static::lazy_static;
 use log::{error, info, trace};
@@ -276,7 +279,7 @@ impl<'a, Tree: 'static + MerkleTreeTrait, G: 'static + Hasher> StackedDrg<'a, Tr
     pub(crate) fn extract_and_invert_transform_layers(
         graph: &StackedBucketGraph<Tree::Hasher>,
         layer_challenges: &LayerChallenges,
-        replica_id: &<Tree::Hasher as Hasher>::Domain,
+        replica_id: &PoseidonDomain,
         data: &mut [u8],
         config: StoreConfig,
     ) -> Result<()> {
@@ -311,7 +314,7 @@ impl<'a, Tree: 'static + MerkleTreeTrait, G: 'static + Hasher> StackedDrg<'a, Tr
     pub fn generate_labels_for_encoding(
         graph: &StackedBucketGraph<Tree::Hasher>,
         layer_challenges: &LayerChallenges,
-        replica_id: &<Tree::Hasher as Hasher>::Domain,
+        replica_id: &PoseidonDomain,
         config: StoreConfig,
     ) -> Result<(Labels<Tree>, Vec<LayerState>)> {
         let mut parent_cache = graph.parent_cache()?;
@@ -356,7 +359,7 @@ impl<'a, Tree: 'static + MerkleTreeTrait, G: 'static + Hasher> StackedDrg<'a, Tr
     pub fn generate_labels_for_decoding(
         graph: &StackedBucketGraph<Tree::Hasher>,
         layer_challenges: &LayerChallenges,
-        replica_id: &<Tree::Hasher as Hasher>::Domain,
+        replica_id: &PoseidonDomain,
         config: StoreConfig,
     ) -> Result<LabelsCache<Tree>> {
         let mut parent_cache = graph.parent_cache()?;
@@ -423,7 +426,7 @@ impl<'a, Tree: 'static + MerkleTreeTrait, G: 'static + Hasher> StackedDrg<'a, Tr
         tree_count: usize,
         configs: Vec<StoreConfig>,
         labels: &LabelsCache<Tree>,
-    ) -> Result<DiskTree<Tree::Hasher, Tree::Arity, Tree::SubTreeArity, Tree::TopTreeArity>>
+    ) -> Result<DiskTree<PoseidonHasher, Tree::Arity, Tree::SubTreeArity, Tree::TopTreeArity>>
     where
         ColumnArity: 'static + PoseidonArity,
         TreeArity: PoseidonArity,
@@ -454,7 +457,7 @@ impl<'a, Tree: 'static + MerkleTreeTrait, G: 'static + Hasher> StackedDrg<'a, Tr
         tree_count: usize,
         configs: Vec<StoreConfig>,
         labels: &LabelsCache<Tree>,
-    ) -> Result<DiskTree<Tree::Hasher, Tree::Arity, Tree::SubTreeArity, Tree::TopTreeArity>>
+    ) -> Result<DiskTree<PoseidonHasher, Tree::Arity, Tree::SubTreeArity, Tree::TopTreeArity>>
     where
         ColumnArity: 'static + PoseidonArity,
         TreeArity: PoseidonArity,
@@ -476,7 +479,7 @@ impl<'a, Tree: 'static + MerkleTreeTrait, G: 'static + Hasher> StackedDrg<'a, Tr
         tree_count: usize,
         configs: Vec<StoreConfig>,
         labels: &LabelsCache<Tree>,
-    ) -> Result<DiskTree<Tree::Hasher, Tree::Arity, Tree::SubTreeArity, Tree::TopTreeArity>>
+    ) -> Result<DiskTree<PoseidonHasher, Tree::Arity, Tree::SubTreeArity, Tree::TopTreeArity>>
     where
         ColumnArity: 'static + PoseidonArity,
         TreeArity: PoseidonArity,
@@ -721,7 +724,7 @@ impl<'a, Tree: 'static + MerkleTreeTrait, G: 'static + Hasher> StackedDrg<'a, Tr
             });
 
             create_disk_tree::<
-                DiskTree<Tree::Hasher, Tree::Arity, Tree::SubTreeArity, Tree::TopTreeArity>,
+                DiskTree<PoseidonHasher, Tree::Arity, Tree::SubTreeArity, Tree::TopTreeArity>,
             >(configs[0].size.expect("config size failure"), &configs)
         })
     }
@@ -732,7 +735,7 @@ impl<'a, Tree: 'static + MerkleTreeTrait, G: 'static + Hasher> StackedDrg<'a, Tr
         tree_count: usize,
         configs: Vec<StoreConfig>,
         labels: &LabelsCache<Tree>,
-    ) -> Result<DiskTree<Tree::Hasher, Tree::Arity, Tree::SubTreeArity, Tree::TopTreeArity>>
+    ) -> Result<DiskTree<PoseidonHasher, Tree::Arity, Tree::SubTreeArity, Tree::TopTreeArity>>
     where
         ColumnArity: PoseidonArity,
         TreeArity: PoseidonArity,
@@ -789,7 +792,7 @@ impl<'a, Tree: 'static + MerkleTreeTrait, G: 'static + Hasher> StackedDrg<'a, Tr
             assert_eq!(tree_count, trees.len());
 
             create_disk_tree::<
-                DiskTree<Tree::Hasher, Tree::Arity, Tree::SubTreeArity, Tree::TopTreeArity>,
+                DiskTree<PoseidonHasher, Tree::Arity, Tree::SubTreeArity, Tree::TopTreeArity>,
             >(configs[0].size.expect("config size failure"), &configs)
         })
     }
@@ -802,7 +805,7 @@ impl<'a, Tree: 'static + MerkleTreeTrait, G: 'static + Hasher> StackedDrg<'a, Tr
         tree_r_last_config: StoreConfig,
         replica_path: PathBuf,
         labels: &LabelsCache<Tree>,
-    ) -> Result<LCTree<Tree::Hasher, Tree::Arity, Tree::SubTreeArity, Tree::TopTreeArity>>
+    ) -> Result<LCTree<PoseidonHasher, Tree::Arity, Tree::SubTreeArity, Tree::TopTreeArity>>
     where
         TreeArity: PoseidonArity,
     {
@@ -835,7 +838,7 @@ impl<'a, Tree: 'static + MerkleTreeTrait, G: 'static + Hasher> StackedDrg<'a, Tr
         tree_r_last_config: StoreConfig,
         replica_path: PathBuf,
         labels: &LabelsCache<Tree>,
-    ) -> Result<LCTree<Tree::Hasher, Tree::Arity, Tree::SubTreeArity, Tree::TopTreeArity>>
+    ) -> Result<LCTree<PoseidonHasher, Tree::Arity, Tree::SubTreeArity, Tree::TopTreeArity>>
     where
         TreeArity: PoseidonArity,
     {
@@ -857,7 +860,7 @@ impl<'a, Tree: 'static + MerkleTreeTrait, G: 'static + Hasher> StackedDrg<'a, Tr
         tree_r_last_config: StoreConfig,
         replica_path: PathBuf,
         labels: &LabelsCache<Tree>,
-    ) -> Result<LCTree<Tree::Hasher, Tree::Arity, Tree::SubTreeArity, Tree::TopTreeArity>>
+    ) -> Result<LCTree<PoseidonHasher, Tree::Arity, Tree::SubTreeArity, Tree::TopTreeArity>>
     where
         TreeArity: PoseidonArity,
     {
@@ -1055,7 +1058,7 @@ impl<'a, Tree: 'static + MerkleTreeTrait, G: 'static + Hasher> StackedDrg<'a, Tr
             }
         });
 
-        create_lc_tree::<LCTree<Tree::Hasher, Tree::Arity, Tree::SubTreeArity, Tree::TopTreeArity>>(
+        create_lc_tree::<LCTree<PoseidonHasher, Tree::Arity, Tree::SubTreeArity, Tree::TopTreeArity>>(
             tree_r_last_config.size.expect("config size failure"),
             &configs,
             &replica_config,
@@ -1069,7 +1072,7 @@ impl<'a, Tree: 'static + MerkleTreeTrait, G: 'static + Hasher> StackedDrg<'a, Tr
         tree_r_last_config: StoreConfig,
         replica_path: PathBuf,
         labels: &LabelsCache<Tree>,
-    ) -> Result<LCTree<Tree::Hasher, Tree::Arity, Tree::SubTreeArity, Tree::TopTreeArity>>
+    ) -> Result<LCTree<PoseidonHasher, Tree::Arity, Tree::SubTreeArity, Tree::TopTreeArity>>
     where
         TreeArity: PoseidonArity,
     {
@@ -1135,7 +1138,7 @@ impl<'a, Tree: 'static + MerkleTreeTrait, G: 'static + Hasher> StackedDrg<'a, Tr
             end += size / tree_count;
         }
 
-        create_lc_tree::<LCTree<Tree::Hasher, Tree::Arity, Tree::SubTreeArity, Tree::TopTreeArity>>(
+        create_lc_tree::<LCTree<PoseidonHasher, Tree::Arity, Tree::SubTreeArity, Tree::TopTreeArity>>(
             tree_r_last_config.size.expect("config size failure"),
             &configs,
             &replica_config,
@@ -1145,7 +1148,7 @@ impl<'a, Tree: 'static + MerkleTreeTrait, G: 'static + Hasher> StackedDrg<'a, Tr
     pub(crate) fn transform_and_replicate_layers(
         graph: &StackedBucketGraph<Tree::Hasher>,
         layer_challenges: &LayerChallenges,
-        replica_id: &<Tree::Hasher as Hasher>::Domain,
+        replica_id: &PoseidonDomain,
         data: Data<'_>,
         data_tree: Option<BinaryMerkleTree<G>>,
         config: StoreConfig,
@@ -1334,8 +1337,7 @@ impl<'a, Tree: 'static + MerkleTreeTrait, G: 'static + Hasher> StackedDrg<'a, Tr
         data.drop_data()?;
 
         // comm_r = H(comm_c || comm_r_last)
-        let comm_r: <Tree::Hasher as Hasher>::Domain =
-            <Tree::Hasher as Hasher>::Function::hash2(&tree_c_root, &tree_r_last_root);
+        let comm_r = <PoseidonHasher as Hasher>::Function::hash2(&tree_c_root, &tree_r_last_root);
 
         Ok((
             Tau {
@@ -1359,7 +1361,7 @@ impl<'a, Tree: 'static + MerkleTreeTrait, G: 'static + Hasher> StackedDrg<'a, Tr
     /// Phase1 of replication.
     pub fn replicate_phase1(
         pp: &'a PublicParams<Tree>,
-        replica_id: &<Tree::Hasher as Hasher>::Domain,
+        replica_id: &PoseidonDomain,
         config: StoreConfig,
     ) -> Result<Labels<Tree>> {
         info!("replicate_phase1");
@@ -1382,8 +1384,8 @@ impl<'a, Tree: 'static + MerkleTreeTrait, G: 'static + Hasher> StackedDrg<'a, Tr
         config: StoreConfig,
         replica_path: PathBuf,
     ) -> Result<(
-        <Self as PoRep<'a, Tree::Hasher, G>>::Tau,
-        <Self as PoRep<'a, Tree::Hasher, G>>::ProverAux,
+        <Self as PoRep<'a, PoseidonHasher, G>>::Tau,
+        <Self as PoRep<'a, PoseidonHasher, G>>::ProverAux,
     )> {
         info!("replicate_phase2");
 
