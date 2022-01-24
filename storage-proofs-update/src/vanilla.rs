@@ -579,6 +579,7 @@ where
             );
         }
         trace!(
+
             "Instantiating {}: arity={}-{}-{}, base_tree_count={}, base_store_size={}",
             name,
             tree_r_base_arity,
