@@ -571,7 +571,8 @@ where
             tree_r_base_tree_count,
         )?;
 
-        trace!("ReplicaConfig Path: {:?}", replica_config.path);
+        info!("ReplicaConfig Path: {:?}", replica_config.path);
+        info!("tree_r_config Path: {:?}", tree_r_config.path);
         for config in &tree_r_configs {
             trace!(
                 "StoreConfig: {:?}",

@@ -317,6 +317,7 @@ pub fn generate_single_partition_proof<Tree: 'static + MerkleTreeTrait<Hasher = 
         h: usize::from(config.h_select),
     };
 
+    info!("sector_key_cache_path: {:?}", sector_key_cache_path);
     let t_aux_old = get_t_aux::<Tree>(sector_key_cache_path)?;
 
     let (tree_d_new_config, tree_r_last_new_config) =
@@ -330,6 +331,12 @@ pub fn generate_single_partition_proof<Tree: 'static + MerkleTreeTrait<Hasher = 
         tree_r_new_config: tree_r_last_new_config,
         replica_path: replica_path.to_path_buf(),
     };
+
+    info!("tree_r_old_config path: {:?}", private_inputs.tree_r_old_config.path);
+    info!("old_replica_path path: {:?}", private_inputs.old_replica_path);
+    info!("tree_r_new_config path: {:?}", private_inputs.tree_r_new_config.path);
+    info!("replica_path path: {:?}", private_inputs.replica_path);
+
 
     let partition_proof =
         EmptySectorUpdate::<Tree>::prove(&public_params, &public_inputs, &private_inputs)?;
