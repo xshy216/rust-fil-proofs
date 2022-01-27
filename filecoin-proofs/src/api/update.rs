@@ -396,7 +396,7 @@ pub fn generate_partition_proofs<Tree: 'static + MerkleTreeTrait<Hasher = TreeRH
     replica_path: &Path,
     replica_cache_path: &Path,
 ) -> Result<Vec<PartitionProof<Tree>>> {
-    info!("generate_partition_proofs:start");
+    info!("generate_V0_partition_proofs:start");
 
     let comm_r_old_safe = <TreeRHasher as Hasher>::Domain::try_from_bytes(&comm_r_old)?;
     let comm_r_new_safe = <TreeRHasher as Hasher>::Domain::try_from_bytes(&comm_r_new)?;
