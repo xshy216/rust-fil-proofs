@@ -32,7 +32,7 @@ lazy_static! {
 }
 
 const DEFAULT_JSON: &str = include_str!("../../parameters.json");
-const DEFAULT_IPGET_VERSION: &str = "v0.6.0";
+const DEFAULT_IPGET_VERSION: &str = "v0.7.0";
 
 #[inline]
 fn get_ipget_dir(version: &str) -> String {
@@ -192,7 +192,7 @@ fn download_file_with_ipget(
     ipget_args: &Option<String>,
     verbose: bool,
 ) -> Result<()> {
-    let mut args = vec![cid, "-o", path.to_str().unwrap()];
+    let mut args = vec![cid, "-o", path.to_str().unwrap(), "--progress"];
     if let Some(ipget_args) = ipget_args {
         args.extend(ipget_args.split_whitespace());
     }
