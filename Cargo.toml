@@ -12,3 +12,7 @@ members = [
   "filecoin-hashers",
   "storage-proofs-update",
 ]
+
+[patch.crates-io]
+rust-gpu-tools = { git = "https://github.com/filecoin-project/rust-gpu-tools", branch = "openclsys" }
+neptune = { git = "https://github.com/filecoin-project/neptune", branch = "rust-gpu-tools-060" }
