@@ -39,9 +39,9 @@ jobs:
       - checkout
       - run: sudo apt install nethogs
       - run:
-          name: Log network traffic
+          name: Log network traffic of agent in MB/s
           background: true
-          command: sudo nethogs -t|grep circleci-machine-agen
+          command: sudo nethogs -t -d 1 -v 4|grep circleci-machine-agent
       - restore_parameter_cache
       - ensure_filecoin_parameters
       - save_parameter_cache
@@ -297,7 +297,7 @@ jobs:
       - run: cargo update
       - run: cargo fetch
       - run:
-          name: Log network traffic
+          name: Log network traffic of agent
           background: true
           command: nettop -m tcp -t wired -s 1 -d -l 0 -J bytes_in -p circleci-agent
       # On CircleCI you cannot create a cache on Linux and restore it on macOS.
