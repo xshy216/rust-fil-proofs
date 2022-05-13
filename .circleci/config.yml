@@ -20,6 +20,10 @@ executors:
     machine:
       image: ubuntu-2004:202101-01
     resource_class: arm.large
+  ubuntu:
+    machine:
+      image: ubuntu-2004:202010-01
+    resource_class: large
 
 setup-env: &setup-env
   FIL_PROOFS_PARAMETER_CACHE: "/tmp/filecoin-proof-parameters/"
@@ -29,7 +33,7 @@ setup-env: &setup-env
 jobs:
   ensure_groth_parameters_and_keys_linux:
     #executor: default
-    executor: arm
+    executor: ubuntu
     environment: *setup-env
     steps:
       - checkout
