@@ -28,7 +28,8 @@ setup-env: &setup-env
 
 jobs:
   ensure_groth_parameters_and_keys_linux:
-    executor: default
+    #executor: default
+    executor: arm
     environment: *setup-env
     steps:
       - checkout
