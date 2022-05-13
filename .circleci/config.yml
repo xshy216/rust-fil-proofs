@@ -39,9 +39,9 @@ jobs:
       - checkout
       - run: sudo apt install nethogs
       - run:
-          name: Log network traffic of agent in MB/s
+          name: Log network traffic of agent in KB/s
           background: true
-          command: sudo nethogs -t -d 1 -v 4|grep circleci-machine-agent
+          command: sudo nethogs -t -d 1|grep circleci-machine-agent
       - restore_parameter_cache
       - ensure_filecoin_parameters
       - save_parameter_cache
