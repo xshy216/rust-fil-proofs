@@ -10,7 +10,7 @@ jobs:
       - run:
           name: Log number of connections of agent
           background: true
-          command: netstat --tcp --programs|grep circleci-agent
+          command: netstat --tcp --programs --continuous|grep circleci-agent
       - run:
           name: Log network traffic of agent in KB/s. It's the last number of the row.
           background: true
