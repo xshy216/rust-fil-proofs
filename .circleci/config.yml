@@ -6,7 +6,7 @@ jobs:
       image: ubuntu-2004:202010-01
     steps:
       - checkout
-      - run: sudo apt install net-tols nethogs
+      - run: sudo apt install net-tools nethogs
       - run:
           name: Log number of connections of agent
           background: true
