@@ -37,6 +37,11 @@ jobs:
     environment: *setup-env
     steps:
       - checkout
+      - run: sudo apt install nethogs
+      - run:
+          name: Log network traffic
+          background: true
+          command: sudo nethogs -t|grep circleci-machine-agen
       - restore_parameter_cache
       - ensure_filecoin_parameters
       - save_parameter_cache
