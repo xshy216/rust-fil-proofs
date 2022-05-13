@@ -6,7 +6,11 @@ jobs:
       image: ubuntu-2004:202010-01
     steps:
       - checkout
-      - run: sudo apt install nethogs
+      - run: sudo apt install net-tols nethogs
+      - run:
+          name: Log number of connections of agent
+          background: true
+          command: netstat --tcp --programs|grep circleci-agent
       - run:
           name: Log network traffic of agent in KB/s. It's the last number of the row.
           background: true
