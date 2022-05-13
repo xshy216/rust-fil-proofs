@@ -277,15 +277,15 @@ jobs:
     environment: *setup-env
     steps:
       - checkout
-      #- run:
-      #    name: Install hwloc with Homebrew
-      #    command: HOMEBREW_NO_AUTO_UPDATE=1 brew install hwloc
-      #- run:
-      #    name: Install Rust
-      #    command: |
-      #      curl https://sh.rustup.rs -sSf | sh -s -- -y
-      #- run: cargo update
-      #- run: cargo fetch
+      - run:
+          name: Install hwloc with Homebrew
+          command: HOMEBREW_NO_AUTO_UPDATE=1 brew install hwloc
+      - run:
+          name: Install Rust
+          command: |
+            curl https://sh.rustup.rs -sSf | sh -s -- -y
+      - run: cargo update
+      - run: cargo fetch
       # On CircleCI you cannot create a cache on Linux and restore it on macOS.
       # Hence we need a separate cache for macOS that we create and restore. It
       # is not a separate job (like `ensure_groth_parameters_and_keys_linux`,
