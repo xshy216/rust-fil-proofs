@@ -276,7 +276,7 @@ jobs:
     resource_class: large
     environment: *setup-env
     steps:
-      #- checkout
+      - checkout
       #- run:
       #    name: Install hwloc with Homebrew
       #    command: HOMEBREW_NO_AUTO_UPDATE=1 brew install hwloc
