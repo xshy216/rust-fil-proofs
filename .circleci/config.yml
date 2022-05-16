@@ -23,12 +23,19 @@ jobs:
     working_directory: ~/crate
     resource_class: large
     steps:
+      - run: HOMEBREW_NO_AUTO_UPDATE=1 brew install awscli
+      - run:
+          name: Increase the maximum concurrent requests for the AWS CLI
+          command: aws configure set default.s3.max_concurrent_requests 40
       - checkout
       - run:
           name: Log network traffic of agent
           background: true
           command: nettop -m tcp -t wired -s 1 -d -l 0 -J bytes_in -p circleci-agent
       - restore_parameter_cache
+      - run:
+          name: Download a file from S3 east to verify that about 100Mib/s is possible
+          command: aws s3 cp --no-sign-request s3://vmx-temporary-bucket-test/miner_sector_posts.csv miner_sector_posts.csv
 
 commands:
   restore_parameter_cache:
