@@ -35,7 +35,7 @@ jobs:
       - restore_parameter_cache
       - run:
           name: Download a file from S3 east to verify that about 100Mib/s is possible
-          command: timeout 60 aws s3 cp --no-sign-request s3://vmx-temporary-bucket-test/miner_sector_posts.csv miner_sector_posts.csv
+          command: timeout 60 aws s3 cp --no-sign-request s3://vmx-temporary-bucket-test/miner_sector_posts.csv miner_sector_posts.csv || true
 
 commands:
   restore_parameter_cache:
