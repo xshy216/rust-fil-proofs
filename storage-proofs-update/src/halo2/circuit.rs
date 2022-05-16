@@ -545,6 +545,9 @@ where
 
         let insert_2 = InsertChip::configure(meta, &advice_eq, &advice_neq);
 
+        // TODO (jake): reuse hasher and insert configs (so we don't duplicate selectors) when
+        // arities match.
+
         let poseidon_2 = <TreeRHasher<F> as HaloHasher<U2>>::configure(
             meta,
             &advice_eq,
