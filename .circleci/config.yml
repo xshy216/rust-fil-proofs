@@ -22,6 +22,8 @@ jobs:
       xcode: "12.5.0"
     working_directory: ~/crate
     resource_class: large
+    environment:
+      AWS_SDK_LOAD_CONFIG: 1
     steps:
       - run: HOMEBREW_NO_AUTO_UPDATE=1 brew install awscli coreutils
       - run:
