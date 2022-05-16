@@ -23,7 +23,7 @@ jobs:
     working_directory: ~/crate
     resource_class: large
     steps:
-      - run: HOMEBREW_NO_AUTO_UPDATE=1 brew install awscli
+      - run: HOMEBREW_NO_AUTO_UPDATE=1 brew install awscli coreutils
       - run:
           name: Increase the maximum concurrent requests for the AWS CLI
           command: aws configure set default.s3.max_concurrent_requests 40
@@ -35,7 +35,7 @@ jobs:
       - restore_parameter_cache
       - run:
           name: Download a file from S3 east to verify that about 100Mib/s is possible
-          command: aws s3 cp --no-sign-request s3://vmx-temporary-bucket-test/miner_sector_posts.csv miner_sector_posts.csv
+          command: timeout 60 aws s3 cp --no-sign-request s3://vmx-temporary-bucket-test/miner_sector_posts.csv miner_sector_posts.csv
 
 commands:
   restore_parameter_cache:
