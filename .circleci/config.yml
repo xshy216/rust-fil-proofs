@@ -21,7 +21,7 @@ jobs:
     macos:
       xcode: "12.5.0"
     working_directory: ~/crate
-    resource_class: large
+    resource_class: macos.x86.medium.gen2
     environment:
       AWS_SDK_LOAD_CONFIG: 1
     steps:
