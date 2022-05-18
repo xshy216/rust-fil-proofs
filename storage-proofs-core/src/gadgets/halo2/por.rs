@@ -164,6 +164,7 @@ where
                             &index_bits,
                         )?
                     }
+                    _ => unimplemented!(),
                 }
             } else {
                 self.base_insert.copy_insert(

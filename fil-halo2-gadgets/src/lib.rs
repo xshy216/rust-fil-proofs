@@ -9,7 +9,7 @@ use std::cmp::max;
 use halo2_proofs::{
     arithmetic::FieldExt,
     circuit::AssignedCell,
-    plonk::{Advice, Column, ConstraintSystem, Fixed},
+    plonk::{Advice, Column, ConstraintSystem, Fixed, Instance},
 };
 use neptune::{halo2_circuit::PoseidonChip, Arity};
 
@@ -71,6 +71,8 @@ impl NumCols {
 pub enum WitnessOrCopy<T, F: FieldExt> {
     Witness(Option<T>),
     Copy(AssignedCell<T, F>),
+    // Public input `(column, absolute row)`.
+    PiCopy(Column<Instance>, usize),
 }
 
 pub struct AdviceIter {
