@@ -74,6 +74,22 @@ impl Drop for Cleanup {
 }
 
 pub fn bind_core(core_index: CoreIndex) -> Result<Cleanup> {
+    if &SETTINGS.sdr_groups!="" {
+        bind_core2(core_index)
+    } else {
+        bind_core1(core_index)
+    }
+}
+
+pub fn core_groups(cores_per_unit: usize) -> Option<Vec<Mutex<Vec<CoreIndex>>>> {
+    if &SETTINGS.sdr_groups!="" {
+        core_groups2()
+    } else {
+        core_groups1(cores_per_unit)
+    }
+}
+
+fn bind_core1(core_index: CoreIndex) -> Result<Cleanup> {
     let child_topo = &TOPOLOGY;
     let tid = get_thread_id();
     let mut locked_topo = child_topo.lock().expect("poisoned lock");
@@ -89,10 +105,16 @@ pub fn bind_core(core_index: CoreIndex) -> Result<Cleanup> {
     // Get only one logical processor (in case the core is SMT/hyper-threaded).
     bind_to.singlify();
 
+    // bind_core的修改
+    // 允许绑定 Processor 
+    //let bind_to = hwloc::CpuSet::from(core_index.0 as u32);
+
     // Thread binding before explicit set.
     let before = locked_topo.get_cpubind_for_thread(tid, CPUBIND_THREAD);
 
-    debug!("binding to {:?}", bind_to);
+    //info!("core_index: {:?}, binding to {:?}", core_index, bind_to);
+
+    //debug!("binding to {:?}", bind_to);
     // Set the binding.
     let result = locked_topo
         .set_cpubind_for_thread(tid, bind_to, CPUBIND_THREAD)
@@ -100,6 +122,36 @@ pub fn bind_core(core_index: CoreIndex) -> Result<Cleanup> {
 
     if result.is_err() {
         warn!("error in bind_core, {:?}", result);
+    }
+
+    Ok(Cleanup {
+        tid,
+        prior_state: before,
+    })
+}
+
+fn bind_core2(core_index: CoreIndex) -> Result<Cleanup> {
+    let child_topo = &TOPOLOGY;
+    let tid = get_thread_id();
+    debug!("xushiyuan 1 -- core_index: {:?}, tid: {:?}", core_index,tid);
+    let mut locked_topo = child_topo.lock().expect("poisoned lock");
+
+    // bind_core的修改
+    // 允许绑定 Processor 
+    let bind_to = hwloc::CpuSet::from(core_index.0 as u32);
+    // Thread binding before explicit set.
+    let before = locked_topo.get_cpubind_for_thread(tid, CPUBIND_THREAD);
+    debug!("xushiyuan 2 -- before  {:?}", before);
+    debug!("xushiyuan 3 -- core_index: {:?}, binding to {:?}", core_index, bind_to);    
+    // Set the binding.
+    let result = locked_topo
+        .set_cpubind_for_thread(tid, bind_to, CPUBIND_THREAD)
+        .map_err(|err| format_err!("failed to bind CPU: {:?}", err));
+
+    if result.is_err() {
+        warn!("error in bind_core, {:?}", result);
+    } else {
+        debug!("xushiyuan 4 -- binded core");
     }
 
     Ok(Cleanup {
@@ -122,9 +174,9 @@ fn get_core_by_index(topo: &Topology, index: CoreIndex) -> Result<&TopologyObjec
     }
 }
 
-fn core_groups(cores_per_unit: usize) -> Option<Vec<Mutex<Vec<CoreIndex>>>> {
+fn core_groups1(cores_per_unit: usize) -> Option<Vec<Mutex<Vec<CoreIndex>>>> {
     let topo = TOPOLOGY.lock().expect("poisoned lock");
-
+    
     let core_depth = match topo.depth_or_below_for_type(&ObjectType::Core) {
         Ok(depth) => depth,
         Err(_) => return None,
@@ -133,6 +185,7 @@ fn core_groups(cores_per_unit: usize) -> Option<Vec<Mutex<Vec<CoreIndex>>>> {
         .objects_with_type(&ObjectType::Core)
         .expect("objects_with_type failed");
     let core_count = all_cores.len();
+
 
     let mut cache_depth = core_depth;
     let mut cache_count = 1;
@@ -181,6 +234,32 @@ fn core_groups(cores_per_unit: usize) -> Option<Vec<Mutex<Vec<CoreIndex>>>> {
                 .collect::<Vec<_>>()
         })
         .collect::<Vec<_>>();
+
+    Some(
+        core_groups
+            .iter()
+            .map(|group| Mutex::new(group.clone()))
+            .collect::<Vec<_>>(),
+    )
+}
+
+fn core_groups2() -> Option<Vec<Mutex<Vec<CoreIndex>>>> {
+    //let topo = TOPOLOGY.lock().expect("poisoned lock");
+    // 自定义核组的解析
+    let mut core_groups=vec![];
+    let sdr_groups=&SETTINGS.sdr_groups;
+    let group_list: Vec<&str> = sdr_groups.as_str().split("/").collect();
+    for g in group_list {
+        let mut cpu_set: Vec<CoreIndex> = vec![];
+        let cpu_list: Vec<&str> = g.split(",").collect();
+        for core in cpu_list {
+            cpu_set.push(CoreIndex(core.parse::<usize>().unwrap()));
+        }
+        // push the current cpu set to the global groups
+        core_groups.push(cpu_set);
+    }
+
+    info!("core_groups: {:?}", core_groups);
 
     Some(
         core_groups

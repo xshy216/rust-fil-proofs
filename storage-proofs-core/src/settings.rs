@@ -23,6 +23,7 @@ pub struct Settings {
     pub max_gpu_tree_batch_size: u32,
     pub rows_to_discard: u32,
     pub sdr_parents_cache_size: u32,
+    pub sdr_groups: String,
     pub window_post_synthesis_num_cpus: u32,
     pub parameter_cache: String,
     pub parent_cache: String,
@@ -44,6 +45,7 @@ impl Default for Settings {
             max_gpu_tree_batch_size: 700_000,
             rows_to_discard: 2,
             sdr_parents_cache_size: 2_048,
+            sdr_groups: group_string(),
             window_post_synthesis_num_cpus: num_cpus::get() as u32,
             // `parameter_cache` does not use the cache() mechanism because it is now used
             // for durable, canonical Groth parameters and verifying keys.
@@ -68,6 +70,11 @@ fn cache(s: &str) -> String {
     cache_name
 }
 
+fn group_string() -> String {
+    let group_var = format!("{}_SDR_CACHE_GROUPS", PREFIX);
+    let group_name = env::var(group_var).unwrap_or_else(|_| "".to_string());
+    group_name
+}
 /// Sets an environment variable to a value if it isn't properly set yet.
 fn set_env_var_if_unset(env_var: &str, value: &str) {
     if env::var(env_var).is_err() {
